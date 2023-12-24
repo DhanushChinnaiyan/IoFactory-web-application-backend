@@ -4,17 +4,18 @@ const router = require("express").Router()
 
 
 // Get router for getting details about producer
-router.get("/get/:id", async (req, res) => {
+router.get("/get", async (req, res) => {
     try {
-      const producerId = req.params.id;
-  
-      // Check if the ID is provided
-      if (!producerId) {
-        return res.status(400).json({ message: "Provide producer ID." });
-      }
+      const { id } = req.query;
+
+    let producerQuery = Producer.find();
+
+    if (id) {
+      producerQuery = Producer.findById(id);
+    }
   
       // Find the producer by ID in the database
-      const producer = await Producer.findById(producerId)
+      const producer = await producerQuery
       .populate({
          path:"Movies",
          select:"_id Name",

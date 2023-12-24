@@ -4,17 +4,18 @@ const Movie = require("../Model/Movie");
 const router = require("express").Router();
 
 // Get router for getting details about actors
-router.get("/get/:id", async (req, res) => {
+router.get("/get", async (req, res) => {
   try {
-    const actorId = req.params.id;
+    const { id } = req.query;
 
-    // Check if the ID is provided
-    if (!actorId) {
-      return res.status(400).json({ message: "Provide actor ID." });
+    let actorQuery = Actor.find();
+
+    if (id) {
+      actorQuery = Actor.findById(id);
     }
 
     // Find the actor by ID in the database
-    const actor = await Actor.findById(actorId)
+    const actor = await actorQuery
       .populate({
         path: "Movies",
         select: "_id Name",
