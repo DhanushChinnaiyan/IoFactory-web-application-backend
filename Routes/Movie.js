@@ -23,7 +23,7 @@ router.get("/get", async (req, res) => {
         model: Actor,
       })
       .populate({
-        path: "ProducerName",
+        path: "Producer",
         select: "_id Name",
         model: Producer,
       })
@@ -45,38 +45,17 @@ router.get("/get", async (req, res) => {
   }
 });
 
-// getting actor ids
-const getActorIds = async (Actors) => {
-  try {
-    const actorObjectIds = await Promise.all(
-      Actors.map(async (name) => {
-        const actor = await Actor.findOne({ Name: name });
-        if (actor) {
-          return actor._id;
-        }
-      })
-    );
-    return actorObjectIds;
-  } catch (error) {
-    console.error("Error fetching actor IDs:", error);
-    throw error;
-  }
-};
-
 // Post router for adding new movie
 router.post("/add", async (req, res) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { Name, YearOfRelease, Plot, Poster, Actors, ProducerName } =
+      const { Name, YearOfRelease, Plot, Poster, Actors, ProducerId } =
         req.body;
 
       if (!Name || !YearOfRelease || !Plot || !Poster || !Actors || !Producer) {
         return res.status(400).json({ message: "Please provide all details." });
       }
-
-      const actorIds = await getActorIds(Actors);
-      const producerId = await Producer.findOne({ Name: ProducerName });
 
       const existingMovie = await Movie.findOne({ Name });
       if (existingMovie) {
@@ -88,18 +67,18 @@ router.post("/add", async (req, res) => {
         YearOfRelease,
         Plot,
         Poster,
-        Actors: actorIds,
-        ProducerName: producerId._id,
+        Actors,
+        Producer:ProducerId
       });
 
       await Actor.updateMany(
-        { _id: { $in: actorIds } },
+        { _id: { $in: Actors } },
         { $push: { Movies: newMovie._id } },
         { session }
       );
 
       await Producer.findByIdAndUpdate(
-        producerId._id,
+        ProducerId,
         { $push: { Movies: newMovie._id } },
         { session }
       );

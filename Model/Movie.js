@@ -23,7 +23,7 @@ const movieSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"actors"
     }],
-    ProducerName:{
+    Producer:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "producers"
     }
